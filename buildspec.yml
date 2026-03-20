@@ -4,7 +4,10 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Docker Hub...
-      - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+      - docker --version
+      - echo "Username length: ${#DOCKER_HUB_USERNAME}"
+      - echo "Password length: ${#DOCKER_HUB_PASSWORD}"
+      - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
 
   build:
     commands:
@@ -19,7 +22,6 @@ phases:
       - docker push ilan25/devbank-frontend:latest
       - docker push ilan25/devbank-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo Writing imagedefinitions.json for ECS...
-      # IMPORTANT: "name" must match the Container Name in your ECS Task Definition
       - printf '[{"name":"frontend-container","imageUri":"ilan25/devbank-frontend:latest"}]' > imagedefinitions.json
 
 artifacts:
