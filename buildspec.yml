@@ -3,13 +3,25 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - echo Logging in to Docker Hub...
+      - echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
 
   build:
     commands:
-      - docker build -t devbank-frontend .
-      - docker tag devbank-frontend YOUR_DOCKER/devbank-frontend:latest
+      - echo Build started on `date`
+      - echo Building the Frontend Docker image...
+      - docker build -t ilan25/devbank-frontend:latest .
+      - docker tag ilan25/devbank-frontend:latest ilan25/devbank-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION
 
   post_build:
     commands:
-      - docker push YOUR_DOCKER/devbank-frontend:latest
+      - echo Pushing the Docker images to Docker Hub...
+      - docker push ilan25/devbank-frontend:latest
+      - docker push ilan25/devbank-frontend:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo Writing imagedefinitions.json for ECS...
+      # IMPORTANT: "name" must match the Container Name in your ECS Task Definition
+      - printf '[{"name":"frontend-container","imageUri":"ilan25/devbank-frontend:latest"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
